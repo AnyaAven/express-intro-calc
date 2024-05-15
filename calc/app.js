@@ -13,42 +13,6 @@ app.use(express.json());                           // process JSON data
 app.use(express.urlencoded());                     // process trad form data
 
 
-// /** Finds mean of nums in qs: returns {operation: "mean", result } */
-// app.get("/mean", function (req, res) {
-//   if (!("nums" in req.query)) throw new BadRequestError(MISSING_ERR_MSG);
-
-//   const nums = req.query.nums.split(",");
-//   const convertedNums = convertStrNums(nums);
-
-//   const result = findMean(convertedNums);
-
-//   return res.json({ operation: "mean", result });
-// });
-
-// /** Finds median of nums in qs: returns {operation: "median", result } */
-// app.get("/median", function (req, res) {
-//   if (!("nums" in req.query)) throw new BadRequestError(MISSING_ERR_MSG);
-
-//   const nums = req.query.nums.split(",");
-//   const convertedNums = convertStrNums(nums);
-
-//   const result = findMedian(convertedNums);
-
-//   return res.json({ operation: "median", result });
-// });
-
-// /** Finds mode of nums in qs: returns {operation: "mean", result } */
-// app.get("/mode", function (req, res) {
-//   if (!("nums" in req.query)) throw new BadRequestError(MISSING_ERR_MSG);
-
-//   const nums = req.query.nums.split(",");
-//   const convertedNums = convertStrNums(nums);
-
-//   const result = findMode(convertedNums);
-
-//   return res.json({ operation: "mode", result });
-// });
-
 app.get("/all", function (req, res) {
   if (!("nums" in req.query)) throw new BadRequestError(MISSING_ERR_MSG);
 
@@ -69,6 +33,12 @@ app.get("/all", function (req, res) {
   });
 });
 
+const operations = {
+  mean: findMean,
+  median: findMedian,
+  mode: findMode,
+}
+
 /** Finds mean, mode, or median of nums in qs:
  *
  * Return example if <operation> is mean:
@@ -76,28 +46,15 @@ app.get("/all", function (req, res) {
 app.get("/:operation", function (req, res) {
   if (!("nums" in req.query)) throw new BadRequestError(MISSING_ERR_MSG);
   const operation = req.params.operation;
+  if (!(operation in operations)) {
+    throw new BadRequestError(`${operation} is not a valid operation`);
+  }
 
   const nums = req.query.nums.split(",");
   const convertedNums = convertStrNums(nums);
 
-  let result;
-  switch (operation) {
-    case "mean":
-      result = findMean(convertedNums);
-      break;
-
-    case "median":
-      result = findMedian(convertedNums);
-      break;
-
-    case "mode":
-      result = findMode(convertedNums);
-      break;
-
-    default:
-      result = "Operation not found"
-  }
-
+  const findOperationVal = operations[operation]
+  const result = findOperationVal(convertedNums)
   return res.json({
     response: {
       operation,
